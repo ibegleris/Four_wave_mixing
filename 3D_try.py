@@ -398,103 +398,107 @@ def FWM(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,d
         return AB_final,lami,Dk_vec
 
 
-
-############### The constants
-n2 = 1.1225783990826979e-20 # nonlinear coefficient
-lamda_c = 1.5508e-6         # the central freequency that the betas are calculated around
-###############
-
-
-
-num_steps = 10 # initial number of steps for the integrator
-d = 1e3 # propagation distance
-
-zmin =0 #starting point of the fibre
-zmax = d #end point of interest
-z = np.linspace(zmin,zmax,num_steps) #linearly spaced propagation vector
-dz = 1 * (z[1] - z[0])
-num_steps = (zmax - zmin) / dz +1
+def main(lamp2_start,lamp2_end,lams_start,lams_end,num_points,P1,P2,P_signal,FWM_pros):
+    ############### The constants
+    n2 = 1.1225783990826979e-20 # nonlinear coefficient
+    lamda_c = 1.5508e-6         # the central freequency that the betas are calculated around
+    ###############
 
 
-############## What beam is in what mode
-B = []
-B.append('lp01') #pump1
-B.append('lp11') #pump2
-B.append('lp01') #sigal
-B.append('lp11') #Idler
-#############
 
-w_vec = np.loadtxt('data/widths.dat')
-w_vec *=1e6
-overlap1,overlap2,zeroing = calc_overlaps(B,w_vec)
-print('calculated the overlaps going for the ode')
-#sys.exit()
-#P_vec1,P_vec2,  P_signal_vec, lamp1,lamp2,lams,lami = input_powers_wavelengths()
+    num_steps = 10 # initial number of steps for the integrator
+    d = 1e3 # propagation distance
+
+    zmin =0 #starting point of the fibre
+    zmax = d #end point of interest
+    z = np.linspace(zmin,zmax,num_steps) #linearly spaced propagation vector
+    dz = 1 * (z[1] - z[0])
+    num_steps = (zmax - zmin) / dz +1
 
 
-lami = []
+    ############## What beam is in what mode
+    B = []
+    B.append('lp01') #pump1
+    B.append('lp11') #pump2
+    B.append('lp01') #sigal
+    B.append('lp11') #Idler
+    #############
+
+    w_vec = np.loadtxt('widths.dat')
+    w_vec *=1e6
+    overlap1,overlap2,zeroing = calc_overlaps(B,w_vec)
+    print('calculated the overlaps going for the ode')
+    #sys.exit()
+    #P_vec1,P_vec2,  P_signal_vec, lamp1,lamp2,lams,lami = input_powers_wavelengths()
 
 
-############ For the brag scattering inputs
-P_vec1 = dbm2w(np.array([18.0+3.3+10]))
-P_vec2 = dbm2w(np.array([13.8+3.3+10]))#dbm2w(np.array([-5]))*np.ones(len(P_vec2))+ dbm2w(10)
-P_signal_vec = dbm2w(np.array([-15.0+10]))#dbm2w(np.array([-7.5]))*np.ones(len(P_vec2)) - dbm2w(np.array([-42,-43,-45,-46,-45]))
-#P_signal_vec = dbm2w(P_signal_vec)
-
-lamp1 = np.array([1549]) * 1e-9
-lamp2 = np.array([1553.8e-9])
-lams =np.array([1548.8]) * 1e-9  # guess
+    lami = []
 
 
-###########
+    ############ For the brag scattering inputs
+    P_vec1 = dbm2w(np.array([P1]))
+    P_vec2 = dbm2w(np.array([P2]))#dbm2w(np.array([-5]))*np.ones(len(P_vec2))+ dbm2w(10)
+    P_signal_vec = dbm2w(np.array([P1-20]))#dbm2w(np.array([-7.5]))*np.ones(len(P_vec2)) - dbm2w(np.array([-42,-43,-45,-46,-45]))
+    #P_signal_vec = dbm2w(P_signal_vec)
 
-########### Find where the optimum freequency for signal is and plot the waves in vecor format for that freequency
-
-mat_lp = loadmat('coeffs.mat')
-AB_final = np.zeros([4,len(P_vec1),len(P_vec2),len(P_signal_vec),len(lamp1),len(lamp2),len(lams)],dtype='complex')
-Dk_vec = np.zeros([len(lamp1),len(lamp2),len(lams)])
-
-
-#### The large one
-lamp2_cons = np.copy(lamp2)
-lams = np.linspace(1548,1555,1024)*1e-9
-lamp2 = np.linspace(1548,1555,1024)*1e-9
-AB_final = np.zeros([4,len(P_vec1),len(P_vec2),len(P_signal_vec),len(lamp1),len(lamp2),len(lams)],dtype='complex')
-Dk_vec = np.zeros([len(lamp1),len(lamp2),len(lams)])
+    lamp1 = np.array([1549]) * 1e-9
+    lamp2 = np.array([1553.8e-9])
+    lams =np.array([1548.8]) * 1e-9  # guess
 
 
-A = Parallel(n_jobs=6)(delayed(FWM)(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2) for n,lams_ in enumerate(lams)) 
+    ###########
 
-from scipy.io import savemat
-dic = {}
-dic['A'] = A
-savemat('bigarray1.mat',dic)
+    ########### Find where the optimum freequency for signal is and plot the waves in vecor format for that freequency
+
+    mat_lp = loadmat('coeffs.mat')
+    #AB_final = np.zeros([4,len(P_vec1),len(P_vec2),len(P_signal_vec),len(lamp1),len(lamp2),len(lams)],dtype='complex')
+    #Dk_vec = np.zeros([len(lamp1),len(lamp2),len(lams)])
 
 
-exit()
-###the smaller one
+    #### The large one
+    lamp2_cons = np.copy(lamp2)
+    lamp2 = np.linspace(lamp2_start,lamp2_end,num_points)*1e-9
+    lams = np.linspace(lams_start,lams_end,num_points)*1e-9
+    AB_final = np.zeros([4,len(P_vec1),len(P_vec2),len(P_signal_vec),len(lamp1),len(lamp2),len(lams)],dtype='complex')
+    Dk_vec = np.zeros([len(lamp1),len(lamp2),len(lams)])
 
-lams = np.linspace(lams_min - 0.001*lams_min,lams_min + 0.001*lams_min,512)
-lamp2 = np.linspace(lamp2 - 0.001*lamp2,lamp2 + 0.001*lamp2,1024)
-AB_final = np.zeros([4,len(P_vec1),len(P_vec2),len(P_signal_vec),len(lamp1),len(lamp2),len(lams)],dtype='complex')
-Dk_vec = np.zeros([len(lamp1),len(lamp2),len(lams)])
 
-A = Parallel(n_jobs=6)(delayed(FWM)(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2)for n,lams_ in enumerate(lams)) 
-dic = {}
-dic['A'] = A
-savemat('bigarray2.mat',dic)
-"""
-A = np.asanyarray(A)
+    A = Parallel(n_jobs=15)(delayed(FWM)(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2) for n,lams_ in enumerate(lams)) 
 
-#AB_final = A[:,0]
-Dk = np.zeros([len(lamp2)])
-for i in range(len(lams)):
-    for j in range(4):    
-        AB_final[j,0,0,0,0,0,i] =A[i,0][j][0][0][0][0][0][i]
-    #Dk[i] = A[i,2][0][0][i]
-fig = plt.figure()
-plt.plot(lams*1e6,w2dbm(np.abs(AB_final[3,0,0,0,0,0,:])**2))
-plt.ylabel(r'$Power (dBm)$')
-plt.xlabel(r'$\lambda_{p2}(\mu m)$')
-plt.title('Effective phase match for varying pump2 wavelength')
-"""
+    from scipy.io import savemat
+    dic = {}
+    dic['A'] = A
+    savemat(FWM_pros+'.mat',dic)
+
+
+    
+    ###the smaller one
+
+    #lams = np.linspace(lams_min - 0.001*lams_min,lams_min + 0.001*lams_min,512)
+    #lamp2 = np.linspace(lamp2 - 0.001*lamp2,lamp2 + 0.001*lamp2,1024)
+    #AB_final = np.zeros([4,len(P_vec1),len(P_vec2),len(P_signal_vec),len(lamp1),len(lamp2),len(lams)],dtype='complex')
+    #Dk_vec = np.zeros([len(lamp1),len(lamp2),len(lams)])
+
+    #A = Parallel(n_jobs=6)(delayed(FWM)(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2)for n,lams_ in enumerate(lams)) 
+    #dic = {}
+    #dic['A'] = A
+    #savemat('bigarray2.mat',dic)
+    return 
+    
+    """
+    A = np.asanyarray(A)
+
+    #AB_final = A[:,0]
+    Dk = np.zeros([len(lamp2)])
+    for i in range(len(lams)):
+        for j in range(4):    
+            AB_final[j,0,0,0,0,0,i] =A[i,0][j][0][0][0][0][0][i]
+        #Dk[i] = A[i,2][0][0][i]
+    fig = plt.figure()
+    plt.plot(lams*1e6,w2dbm(np.abs(AB_final[3,0,0,0,0,0,:])**2))
+    plt.ylabel(r'$Power (dBm)$')
+    plt.xlabel(r'$\lambda_{p2}(\mu m)$')
+    plt.title('Effective phase match for varying pump2 wavelength')
+    """
+main(1550,1554,1549,1553,512,30.5,27.,10.5,'phase_conj')
+main(1553,1554,1549,1553,512,30.5,27.,10.5,'brag')
