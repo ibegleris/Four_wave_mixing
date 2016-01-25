@@ -11,7 +11,7 @@ rel/example_project
 Misc/*
 *.pyc
 plot*
-peakdetenct.py
+peakdetect.py
 brag.mat
 phase_conj.mat
 results/*
