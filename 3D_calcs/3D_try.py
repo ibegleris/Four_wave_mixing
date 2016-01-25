@@ -380,13 +380,13 @@ def FWM(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,d
             AB0 = np.array([P1,P2, P_signal, 0], dtype='complex')
             AB0[:] = AB0[:]**0.5
             int_method = 'dopri5'
-            AB_final[:,m,n],outcome = integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
+            AB_final[:,m],outcome = integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
             if outcome==False:
                 print('first try failed, trying adaptive steping...')
                 exits = 0
                 int_method = 'dop853'
                 while exits<=55 and outcome == False:
-                    AB_final[:,m,n],outcome = integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
+                    AB_final[:,m],outcome = integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
                     exits +=1
                     dz *= 0.5
                     print 'failed, trying step size:', dz,'...'
@@ -456,7 +456,7 @@ def main(lamp2_start,lamp2_end,lams_start,lams_end,num_points,P1,P2,P_signal,FWM
     lamp2_cons = np.copy(lamp2)
     lamp2 = np.linspace(lamp2_start,lamp2_end,num_points)*1e-9
     lams = np.linspace(lams_start,lams_end,num_points)*1e-9
-    AB_final = np.zeros([4,len(lamp2),len(lams)],dtype='complex')
+    AB_final = np.zeros([4,len(lamp2)],dtype='complex')
     Dk_vec = np.zeros([len(lamp1),len(lamp2),len(lams)])
 
 

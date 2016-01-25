@@ -10,6 +10,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from scipy.io import loadmat, savemat
 import matplotlib.pylab as plt
 import numpy as np
+import sys
 
 def w2dbm(W):
     """This function converts a power given in W to a power given in dBm.
