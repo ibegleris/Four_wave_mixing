@@ -305,7 +305,7 @@ def calc_overlaps(B, w_vec):
 def input_powers_wavelengths():
     """From the experimental data
     """
-    mat = loadmat('data/LP11_FWM_data.mat')
+    mat = loadmat('../loading_data/LP11_FWM_data.mat')
     lams_vec_exp = mat['lam_vals']
     D = mat['D']
     del mat
@@ -369,12 +369,12 @@ def main():
     B.append('lp11')  # Idler
     #############
 
-    w_vec = np.loadtxt('data/widths.dat')
+    w_vec = np.loadtxt('../loading_data/widths.dat')
     w_vec *= 1e6
     overlap1, overlap2, zeroing = calc_overlaps(B, w_vec)
     print('calculated the overlaps going for the ode')
     P_vec, P_signal_vec, lamp, lams, lami = input_powers_wavelengths()
-    mat_lp = loadmat('coeffs.mat')
+    mat_lp = loadmat('../loading_data/coeffs.mat')
     AB_final = FWM(
         n2,
         P_vec,

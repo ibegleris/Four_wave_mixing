@@ -100,7 +100,7 @@ beta2 = -lamda_c**2*DD/(2*pi*c)
 
 
 
-mat  = loadmat('data/LP11_FWM_data.mat')
+mat  = loadmat('../loading_data/LP11_FWM_data.mat')
 lams_vec_exp= mat['lam_vals']
 D = mat['D']
 del mat

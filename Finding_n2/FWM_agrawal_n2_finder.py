@@ -148,7 +148,7 @@ def inputs(filename):
     Takes in the experimental values measured from the experiment that is
     simmulated to find n2.
     """
-    mat  = loadmat('data/LP11_FWM_data.mat')
+    mat  = loadmat('../loading_data/LP11_FWM_data.mat')
     #mat = loadmat(filename)
     lams_vec_exp= mat['lam_vals']
     D = mat['D']

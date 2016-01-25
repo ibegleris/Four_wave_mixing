@@ -434,7 +434,7 @@ B.append('lp01') #sigal
 B.append('lp11') #Idler
 #############
 
-w_vec = np.loadtxt('data/widths.dat')
+w_vec = np.loadtxt('../loading_data/widths.dat')
 w_vec *=1e6
 overlap1,overlap2,zeroing = calc_overlaps(B,w_vec)
 print('calculated the overlaps going for the ode')
@@ -460,7 +460,7 @@ lams =np.array([1548.8]) * 1e-9
 
 ########### Find where the optimum freequency for pump2 is and plot the waves in vecor format for that freequency
 
-mat_lp = loadmat('coeffs.mat')
+mat_lp = loadmat('../loading_data/coeffs.mat')
 lamp_min = fsolve(effective_phase_matching,lamp2,args = (n2,P_vec1,P_vec2,P_signal_vec,lamp1,lams,lami,dz,num_steps,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2))
 
 lamp2 = lamp_min#np.arange(1.546,1.558,0.0001)*1e-6##np.array([1552.6,1553.7,1553.9,1554.1,1554.2]) * 1e-9#

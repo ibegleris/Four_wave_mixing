@@ -14,6 +14,5 @@ plot*
 peakdetenct.py
 brag.mat
 phase_conj.mat
-results/*
-idler_power.mat
-emailing.py
+email*
+
