@@ -7,3 +7,5 @@ results/*
 modes_approximation/*.png
 *~
 *.png
+*brag.mat
+*phase_conj.mat
