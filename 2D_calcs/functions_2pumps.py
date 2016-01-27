@@ -360,12 +360,11 @@ def effective_phase_matching_general(lams,n2,P_vec1,P_vec2,P_signal_vec,lamp1,la
 def FWM(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2):
         for l, lamp1_ in enumerate(lamp1):
             for m,lamp2_ in enumerate(lamp2):
-
                  lam_vec = np.array([lamp1_,lamp2_,lams_,1])
                  omega = 2*pi*c/(lam_vec[:])
-                 omega[3] = omega[0] + omega[1] -omega[2]
-                 #lami.append(2*pi*c/omega[3])
-                 print np.shape(omega)
+                 omega[3] = omega[0] + omega[1] - omega[2]
+                 lami.append(2*pi*c/omega[3])
+
                  Dk_vec[l,m,n] = Dk_func(omega,lamda_c,B,zeroing,mat_lp)
                  Dk = Dk_vec[l,m,n]
                  dz = 1/(np.abs(Dk)*10)
