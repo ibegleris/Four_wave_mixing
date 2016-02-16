@@ -357,39 +357,93 @@ def effective_phase_matching_general(lams,n2,P_vec1,P_vec2,P_signal_vec,lamp1,la
     return Dk_vec,Dk_vec_nl,lami
 
 
-def FWM(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2):
-        for l, lamp1_ in enumerate(lamp1):
-            for m,lamp2_ in enumerate(lamp2):
-                 lam_vec = np.array([lamp1_,lamp2_,lams_,1])
-                 omega = 2*pi*c/(lam_vec[:])
-                 omega[3] = omega[0] + omega[1] - omega[2]
-                 lami.append(2*pi*c/omega[3])
+def FWM(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2,noise_floor,seeds,num_eval,idl):
+    for l, lamp1_ in enumerate(lamp1):
+        for m,lamp2_ in enumerate(lamp2):
+            lam_vec = np.array([lamp1_,lamp2_,lams_,1])
+            if idl == 'bs':
+              lam_vec[0],lam_vec[2] = lam_vec[2], lam_vec[0]
+            omega = 2*pi*c/(lam_vec[:])
+            omega[3] = omega[0] + omega[1] - omega[2]
+            lami.append(2*pi*c/omega[3])
 
-                 Dk_vec[l,m,n] = Dk_func(omega,lamda_c,B,zeroing,mat_lp)
-                 Dk = Dk_vec[l,m,n]
-                 dz = 1/(np.abs(Dk)*10)
-                 if Dk == 0 or dz > 1000:
-                     dz =0.1
+            Dk = Dk_func(omega,lamda_c,B,zeroing,mat_lp)
+            dz = 1/(np.abs(Dk)*10)
+            if Dk == 0 or dz > 1000:
+               dz =0.1
 
-                 for i,P1 in enumerate(P_vec1):
-                     for j,P2 in enumerate(P_vec2):
-                         for k, P_signal in enumerate(P_signal_vec):
+            for i,P1 in enumerate(P_vec1):
+                for j,P2 in enumerate(P_vec2):
+                    for k, P_signal in enumerate(P_signal_vec):
 
+                        AB0 = np.array([P1,P2, P_signal, 0], dtype='complex')
+                        AB0[:] +=noise_floor
+                        AB0[:] = AB0[:]**0.5
+                        int_method = 'dopri5'
+                        #print w2dbm(np.abs(AB0)**2)
+                        #sys.exit()
+                        AB_final[:,i,j,k,l,m,n],outcome = \
+                                        integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
+                        if outcome==False:
+                            print('first try failed, trying adaptive steping...')
+                            exits = 0
+                            int_method = 'dop853'
+                            while exits<=55 and outcome == False:
+                                AB_final[:,i,j,k,l,m,n],outcome = \
+                                               integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
+                                exits +=1
+                                dz *= 0.5
+                                print 'failed, trying step size:', dz,'...'
+                            if outcome == False:
+                                sys.exit('All integrations failed')
+    return AB_final,lami,Dk_vec
+
+
+
+def FWM_monte(n2,AB_final,Dk_vec,P_vec1,P_vec2,P_signal_vec,lamp1,lams_,n,lamp2,lami,dz,lamda_c,mat_lp,B,zmin,zmax,zeroing,overlap1,overlap2,noise_floor,seeds,num_eval,idl):
+    for l, lamp1_ in enumerate(lamp1):
+        for m,lamp2_ in enumerate(lamp2):
+            lam_vec = np.array([lamp1_,lamp2_,lams_,1])
+            if idl == 'bs':
+                lam_vec[0],lam_vec[2] = lam_vec[2], lam_vec[0]
+                #P_vec1,P_signal_vec = P_signal_vec,P_vec1
+            omega = 2*pi*c/(lam_vec[:])
+            omega[3] = omega[0] + omega[1] - omega[2]
+            lami.append(2*pi*c/omega[3])
+
+            Dk = Dk_func(omega,lamda_c,B,zeroing,mat_lp)
+            dz = 1/(np.abs(Dk)*10)
+            if Dk == 0 or dz > 1000:
+                dz =0.1
+
+            for i,P1 in enumerate(P_vec1):
+                for j,P2 in enumerate(P_vec2):
+                    for k, P_signal in enumerate(P_signal_vec):
+                        np.random.seed(seeds+n+l+i+j+k+m)
+                        azimuth = np.random.rand(num_eval)*2*np.pi
+                        AB_monte = np.zeros([4,num_eval],dtype=np.complex)
+                        for t,theta in enumerate(azimuth):
                             AB0 = np.array([P1,P2, P_signal, 0], dtype='complex')
+                            AB0[:] +=noise_floor
+                            AB0[2] *= np.exp(1j*theta)
                             AB0[:] = AB0[:]**0.5
                             int_method = 'dopri5'
-                            AB_final[:,i,j,k,l,m,n],outcome = \
+                            AB_monte[:,t],outcome = \
                                             integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
                             if outcome==False:
                                 print('first try failed, trying adaptive steping...')
                                 exits = 0
                                 int_method = 'dop853'
                                 while exits<=55 and outcome == False:
-                                    AB_final[:,i,j,k,l,m,n],outcome = \
+                                    AB_monte[:,t],outcome = \
                                                    integrator(int_method,AB0,zmin,zmax,dz,omega,Dk,n2,overlap1,overlap2)
                                     exits +=1
                                     dz *= 0.5
                                     print 'failed, trying step size:', dz,'...'
                                 if outcome == False:
                                     sys.exit('All integrations failed')
+
+                        
+                        for tt in range(4):
+                            AB_final[tt,i,j,k,l,m,n] = np.average(AB_monte[tt,:])
         return AB_final,lami,Dk_vec
