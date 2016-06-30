@@ -193,7 +193,7 @@ def main(w,idl,corrr,lp1,lp2,extra,num,calcoverlaps=True):
     #plotter(lams,np.asanyarray(lami),Powers[0,:],'pump1_large')
 
     
-    plotter_deturing(np.abs(lami-lamp2),conv_eff,meas.lam,eval('meas.'+idl),'det2'+str(corrr)+'/conversion_effieicny_det_'+idl+'_'+str(lp2),idl)
+    plotter_deturing(np.abs(lami-lamp2),conv_eff,meas.lam,eval('meas.'+idl),'figures'+'/conversion_effieicny_det_'+idl+'_'+str(lp2),idl)
     D = {}
     D['lamp1'] = lamp1
     D['lamp2'] = lamp2
@@ -203,7 +203,7 @@ def main(w,idl,corrr,lp1,lp2,extra,num,calcoverlaps=True):
     D['conv_eff'] = conv_eff
     D['lam_detur_exp'] = meas.lam
     D['conv_eff_det'] = eval('meas.'+idl)
-    savemat('det2'+str(corrr)+'/data'+idl+str(lp2)+'.mat',D)
+    savemat('figures'+'/exported_data'+idl+str(lp2)+'.mat',D)
 
 
     return Powers, lami,lamp2
